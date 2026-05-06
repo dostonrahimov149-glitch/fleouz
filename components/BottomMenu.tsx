@@ -1,0 +1,148 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import { supabase } from "@/lib/supabase";
+
+export default function BottomMenu() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 AUTH CHECK
+  useEffect(() => {
+    checkUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkUser = async () => {
+    const { data } = await supabase.auth.getUser();
+
+    if (data.user) {
+      setUser(data.user);
+    }
+
+    setLoading(false);
+  };
+
+  // 🔥 TEST ICHIDA MENU YO‘Q
+  const hideTestMenu =
+    pathname.includes("/attestation/") &&
+    pathname.split("/").length > 3;
+
+  // ❌ HIDE PAGES
+  const hiddenPages = [
+    "/login",
+    "/register",
+    "/update-password",
+  ];
+
+  // ⏳ LOADING
+  if (loading) return null;
+
+  // ❌ LOGIN QILMAGAN
+  if (!user) return null;
+
+  // ❌ TEST ICHIDA
+  if (hideTestMenu) return null;
+
+  // ❌ LOGIN / REGISTER
+  if (hiddenPages.includes(pathname)) return null;
+
+  const menu = [
+    {
+      name: "Home",
+      icon: "/home.png",
+      path: "/dashboard",
+      color: "from-indigo-500 to-purple-600",
+    },
+    {
+      name: "Testlar",
+      icon: "/result1.png",
+      path: "/attestation",
+      color: "from-green-500 to-emerald-600",
+    },
+    {
+      name: "Reyting",
+      icon: "/target.png",
+      path: "/ranking",
+      color: "from-orange-500 to-amber-600",
+    },
+    {
+      name: "Profil",
+      icon: "/profil.png",
+      path: "/profile",
+      color: "from-pink-500 to-rose-600",
+    },
+  ];
+
+  return (
+    <div
+      className="
+        fixed bottom-4 left-4 right-4
+        bg-gradient-to-r from-white/80 via-blue-50/70 to-white/80
+        backdrop-blur-2xl
+        rounded-2xl
+        border border-white/40
+        shadow-[0_15px_50px_rgba(59,130,246,0.25)]
+        flex justify-around py-3 z-50
+      "
+    >
+      {menu.map((item, i) => {
+        const active = pathname.startsWith(item.path);
+
+        return (
+          <div
+            key={i}
+            onClick={() => router.push(item.path)}
+            className="flex flex-col items-center text-xs cursor-pointer"
+          >
+            {/* ICON */}
+            <motion.div
+              whileTap={{ scale: 0.8 }}
+              animate={active ? { y: [0, -4, 0] } : {}}
+              transition={{ duration: 0.4 }}
+              className={`
+                p-2 rounded-xl transition-all duration-300
+                ${
+                  active
+                    ? `bg-gradient-to-r ${item.color} shadow-[0_5px_20px_rgba(0,0,0,0.3)] text-white`
+                    : "bg-white/60 hover:bg-white/90"
+                }
+              `}
+            >
+              <Image
+                src={item.icon}
+                alt={item.name}
+                width={24}
+                height={24}
+                className="w-6 h-auto object-contain"
+              />
+            </motion.div>
+
+            {/* TEXT */}
+            <span
+              className={`
+                mt-1 font-semibold transition
+                ${active ? "text-blue-600" : "text-gray-600"}
+              `}
+            >
+              {item.name}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
