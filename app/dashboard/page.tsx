@@ -10,6 +10,21 @@ export default function Dashboard() {
   const router = useRouter();
   const [winner, setWinner] = useState<any>(null);
 
+  // 🔒 AUTH PROTECTION
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.replace("/login");
+      }
+    };
+
+    checkSession();
+  }, [router]);
+
   const c1Words = [
     { word: "s’avérer", meaning: "ma’lum bo‘lmoq", example: "Cette solution s’avère efficace." },
     { word: "mettre en œuvre", meaning: "amalga oshirmoq", example: "Le gouvernement met en œuvre une réforme." },
@@ -28,7 +43,7 @@ export default function Dashboard() {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.replace("/login");
   };
 
   useEffect(() => {
@@ -36,6 +51,7 @@ export default function Dashboard() {
       { name: "Ali", score: 9800, avatar: "https://randomuser.me/api/portraits/men/32.jpg" },
       { name: "Dilnoza", score: 12540, avatar: "https://randomuser.me/api/portraits/women/44.jpg" }
     ];
+
     setWinner(users[Math.floor(Math.random() * users.length)]);
   }, []);
 
@@ -58,7 +74,7 @@ export default function Dashboard() {
           FLEOUZ
         </h1>
 
-        <button 
+        <button
           onClick={logout}
           className="text-sm bg-gradient-to-r from-orange-400 to-red-400 text-white px-4 py-2 rounded-xl shadow-md"
         >
@@ -68,14 +84,17 @@ export default function Dashboard() {
 
       {/* 🏆 WINNER */}
       {winner && (
-        <div className="mx-4 mb-6 p-[30px] rounded-3xl 
-bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
+        <div className="mx-4 mb-6 p-[30px] rounded-3xl
+bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
 shadow-[0_15px_50px_rgba(139,92,246,0.4)]">
 
           <div className="flex justify-between items-center">
 
             <div className="flex items-center gap-4">
-              <img src={winner.avatar} className="w-23 h-23 rounded-full border-4 border-yellow-400"/>
+              <img
+                src={winner.avatar}
+                className="w-23 h-23 rounded-full border-4 border-yellow-400"
+              />
 
               <div>
                 <p className="text-1g text-white-500">🥇 Hafta g‘olibi</p>
@@ -94,66 +113,69 @@ shadow-[0_15px_50px_rgba(139,92,246,0.4)]">
         </div>
       )}
 
-     {/* 📘 ATTESTATSIYA */}
-<div className="mx-4">
-  <Link href="/attestation">
-    <motion.div
-      whileTap={{ scale: 0.97 }}
-      className="
-        p-8 rounded-3xl 
-        bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
-        text-white 
-        shadow-[0_25px_50px_rgba(139,92,246,0.5)] 
-        relative overflow-hidden
-      "
-    >
-
-      {/* 🔥 CONTENT */}
-      <div className="flex items-center justify-between">
-
-        {/* LEFT SIDE */}
-        <div className="flex items-center gap-4">
-
-          <img 
-            src="/attest.png" 
+      {/* 📘 ATTESTATSIYA */}
+      <div className="mx-4">
+        <Link href="/attestation">
+          <motion.div
+            whileTap={{ scale: 0.97 }}
             className="
-              w-20 h-20 object-contain invert 
-              drop-shadow-1g [0_0_10px_rgba(255,255,255,0.7)]
+              p-8 rounded-3xl
+              bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
+              text-white
+              shadow-[0_25px_50px_rgba(139,92,246,0.5)]
+              relative overflow-hidden
             "
-          />
+          >
 
-          <div>
-            <h3 className="text-2xl font-bold tracking-wide">
-              Attestatsiya
-            </h3>
+            {/* 🔥 CONTENT */}
+            <div className="flex items-center justify-between">
 
-            <p className="text-lg opacity-90">
-              Real test formatida sinab ko‘ring
-            </p>
-          </div>
+              {/* LEFT SIDE */}
+              <div className="flex items-center gap-4">
 
-        </div>
+                <img
+                  src="/attest.png"
+                  className="
+                    w-20 h-20 object-contain invert
+                    drop-shadow-1g [0_0_10px_rgba(255,255,255,0.7)]
+                  "
+                />
 
-        {/* 👉 CTA ARROW */}
-        <motion.div
-          animate={{ x: [0, 6, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="text-5xl font-bold"
-        >
-          →
-        </motion.div>
+                <div>
+                  <h3 className="text-2xl font-bold tracking-wide">
+                    Attestatsiya
+                  </h3>
 
+                  <p className="text-lg opacity-90">
+                    Real test formatida sinab ko‘ring
+                  </p>
+                </div>
+
+              </div>
+
+              {/* 👉 CTA ARROW */}
+              <motion.div
+                animate={{ x: [0, 6, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-5xl font-bold"
+              >
+                →
+              </motion.div>
+
+            </div>
+
+          </motion.div>
+        </Link>
       </div>
 
-    </motion.div>
-  </Link>
-</div>
-
       {/* 🇫🇷 DAILY WORD */}
-     <div className="mx-4 mt-6 p-[20px] rounded-3xl 
-bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
+      <div className="mx-4 mt-6 p-[20px] rounded-3xl
+bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500
 shadow-[0_15px_50px_rgba(139,92,246,0.4)]">
-        <p className="text-xs text-white-500">🇫🇷 Mot du jour</p>
+
+        <p className="text-xs text-white-500">
+          🇫🇷 Mot du jour
+        </p>
 
         <h2 className="text-3xl font-bold text-black-600 mt-1">
           {c1Words[currentWord].word}
@@ -166,37 +188,6 @@ shadow-[0_15px_50px_rgba(139,92,246,0.4)]">
         <p className="text-1italic text-white-400 mt-2">
           {c1Words[currentWord].example}
         </p>
-      </div>
-
-      {/* 📱 FLOATING MENU */}
-      <div className="
-        fixed bottom-4 left-4 right-4
-        bg-gradient-to-r from-indigo-100/80 via-blue-50/70 to-white/80
-        backdrop-blur-2xl
-        rounded-2xl
-        shadow-[0_10px_40px_rgba(0,0,0,0.2)]
-        flex justify-around py-3
-      ">
-
-        {[
-          { name: "Home", icon: "/home.png", color: "bg-indigo-500" },
-          { name: "Testlar", icon: "/result1.png", color: "bg-green-500" },
-          { name: "Reyting", icon: "/target.png", color: "bg-orange-500" },
-          { name: "Profil", icon: "/profil.png", color: "bg-pink-500" }
-        ].map((item, i) => (
-          <div key={i} className="flex flex-col items-center text-xs">
-
-            <motion.div
-              whileTap={{ scale: 0.85 }}
-              className={`${item.color} p-2 rounded-xl text-white shadow-md`}
-            >
-              <img src={item.icon} className="w-6 h-6"/>
-            </motion.div>
-
-            <span className="mt-1 text-gray-700">{item.name}</span>
-          </div>
-        ))}
-
       </div>
 
     </div>
