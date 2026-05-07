@@ -11,6 +11,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
 
   const handleRegister = async () => {
+
+    // 🔐 AUTH REGISTER
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -21,8 +23,9 @@ export default function RegisterPage() {
       return;
     }
 
-    // profiles tablega user qo‘shish
+    // 👤 PROFILES TABLE CREATE
     if (data.user) {
+
       const { error: profileError } = await supabase
         .from("profiles")
         .insert([
@@ -41,6 +44,7 @@ export default function RegisterPage() {
     }
 
     alert("Ro‘yxatdan o‘tildi ✅");
+
     router.push("/login");
   };
 
@@ -61,6 +65,7 @@ export default function RegisterPage() {
           type="email"
           placeholder="Email"
           className="w-full p-4 rounded-2xl bg-white/20 text-white placeholder:text-white/50 outline-none mb-4"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -68,6 +73,7 @@ export default function RegisterPage() {
           type="password"
           placeholder="Parol"
           className="w-full p-4 rounded-2xl bg-white/20 text-white placeholder:text-white/50 outline-none mb-5"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
