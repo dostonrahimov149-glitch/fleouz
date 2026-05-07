@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 type Question = {
   question: string;
@@ -35,16 +36,23 @@ export default function ExamEngine({
 
   const handleSelect = (opt: string) => {
     if (isPremiumLocked) return;
-    setAnswers({ ...answers, [current]: opt });
+
+    setAnswers({
+      ...answers,
+      [current]: opt,
+    });
   };
 
   const score = questions.filter(
     (q, i) => answers[i] === q.answer
   ).length;
 
-  const percent = Math.round((score / questions.length) * 100);
+  const percent = Math.round(
+    (score / questions.length) * 100
+  );
 
   let level = "A1";
+
   if (percent >= 90) level = "C1";
   else if (percent >= 75) level = "B2";
   else if (percent >= 60) level = "B1";
@@ -53,30 +61,97 @@ export default function ExamEngine({
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
 
+  // 🚀 SAVE RESULT + XP
+  const handleFinish = async () => {
+
+    // 🎉 test finished
+    setFinished(true);
+
+    // 🔐 auth user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // 👤 user mavjud bo‘lsa
+    if (user) {
+
+      // 📦 profile olish
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+
+        // 🧮 yangi qiymatlar
+        const newTests =
+          (profile.tests_completed || 0) + 1;
+
+        const newAverage = Math.round(
+          (
+            (profile.average_score || 0) *
+            (profile.tests_completed || 0) +
+            percent
+          ) / newTests
+        );
+
+        // 🚀 update profile
+        await supabase
+          .from("profiles")
+          .update({
+            tests_completed: newTests,
+            xp: (profile.xp || 0) + percent,
+            average_score: newAverage,
+          })
+          .eq("id", user.id);
+      }
+    }
+  };
+
   // 🎉 RESULT SCREEN
   if (finished) {
     return (
       <div className="min-h-screen bg-black text-white p-6">
-        <h1 className="text-4xl font-bold text-center mb-6">🎉 Natija</h1>
+
+        <h1 className="text-4xl font-bold text-center mb-6">
+          🎉 Natija
+        </h1>
 
         <div className="text-center mb-10">
-          <p className="text-xl">{score} / {questions.length}</p>
-          <p className="text-lg">{percent}%</p>
-          <p className="text-2xl text-blue-400 mt-2">{level}</p>
+
+          <p className="text-xl">
+            {score} / {questions.length}
+          </p>
+
+          <p className="text-lg">
+            {percent}%
+          </p>
+
+          <p className="text-2xl text-blue-400 mt-2">
+            {level}
+          </p>
+
         </div>
 
         <div className="space-y-4 max-w-2xl mx-auto">
+
           {questions.map((q, i) => {
             const userAnswer = answers[i];
             const correct = q.answer;
 
             return (
-              <div key={i} className="p-4 bg-white/10 rounded-xl">
+              <div
+                key={i}
+                className="p-4 bg-white/10 rounded-xl"
+              >
+
                 <p className="font-bold mb-2">
                   {i + 1}. {q.question}
                 </p>
 
                 {q.options.map((opt, idx) => (
+
                   <div
                     key={idx}
                     className={`p-2 rounded mb-1 ${
@@ -89,10 +164,12 @@ export default function ExamEngine({
                   >
                     {opt}
                   </div>
+
                 ))}
               </div>
             );
           })}
+
         </div>
       </div>
     );
@@ -103,16 +180,26 @@ export default function ExamEngine({
 
       {/* 📌 SIDEBAR */}
       <div className="w-20 bg-black/30 flex flex-col items-center py-4 space-y-2">
+
         {questions.map((_, i) => (
+
           <div
             key={i}
             onClick={() => setCurrent(i)}
             className={`w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer text-sm
-              ${current === i ? "bg-blue-500" : answers[i] ? "bg-green-500" : "bg-white/20"}`}
+              ${
+                current === i
+                  ? "bg-blue-500"
+                  : answers[i]
+                  ? "bg-green-500"
+                  : "bg-white/20"
+              }`}
           >
             {i + 1}
           </div>
+
         ))}
+
       </div>
 
       {/* 🧠 MAIN */}
@@ -120,20 +207,35 @@ export default function ExamEngine({
 
         {/* 🔝 TOP */}
         <div className="flex justify-between p-4 bg-white/10">
-          <span>⏱ {minutes}:{seconds < 10 ? "0" : ""}{seconds}</span>
-          <span>{current + 1} / {questions.length}</span>
+
+          <span>
+            ⏱ {minutes}:{seconds < 10 ? "0" : ""}
+            {seconds}
+          </span>
+
+          <span>
+            {current + 1} / {questions.length}
+          </span>
+
         </div>
 
         {/* 📊 PROGRESS */}
         <div className="h-1 bg-white/10">
+
           <div
             className="h-1 bg-gradient-to-r from-blue-400 to-purple-500"
-            style={{ width: `${((current + 1) / questions.length) * 100}%` }}
+            style={{
+              width: `${
+                ((current + 1) / questions.length) * 100
+              }%`,
+            }}
           />
+
         </div>
 
         {/* ❓ QUESTION */}
         <div className="flex-1 flex items-center justify-center p-6">
+
           <div className="max-w-xl w-full">
 
             {isPremiumLocked && (
@@ -152,10 +254,12 @@ export default function ExamEngine({
             </motion.h2>
 
             <div className="space-y-4">
+
               {questions[current].options.map((opt, i) => {
                 const selected = answers[current] === opt;
 
                 return (
+
                   <motion.div
                     key={i}
                     whileTap={{ scale: 0.95 }}
@@ -169,34 +273,44 @@ export default function ExamEngine({
                   >
                     {opt}
                   </motion.div>
+
                 );
               })}
+
             </div>
 
             {/* ➡️ NAV */}
             <div className="flex justify-between mt-8">
+
               <button
-                onClick={() => setCurrent(Math.max(current - 1, 0))}
+                onClick={() =>
+                  setCurrent(Math.max(current - 1, 0))
+                }
                 className="px-4 py-2 bg-white/20 rounded-xl"
               >
                 ←
               </button>
 
               {current === questions.length - 1 ? (
+
                 <button
-                  onClick={() => setFinished(true)}
+                  onClick={handleFinish}
                   className="px-6 py-2 bg-green-500 rounded-xl"
                 >
                   Finish
                 </button>
+
               ) : (
+
                 <button
                   onClick={() => setCurrent(current + 1)}
                   className="px-6 py-2 bg-blue-500 rounded-xl"
                 >
                   →
                 </button>
+
               )}
+
             </div>
 
           </div>
