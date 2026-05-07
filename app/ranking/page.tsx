@@ -31,6 +31,35 @@ export default function RankingPage() {
 
     getRanking();
 
+    // ⚡ REALTIME UPDATE
+    const channel = supabase
+      .channel("ranking-live")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+        },
+        async () => {
+
+          const { data } = await supabase
+            .from("profiles")
+            .select("*")
+            .order("xp", { ascending: false });
+
+          if (data) {
+            setUsers(data);
+          }
+
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
   }, []);
 
   if (loading) {
@@ -44,12 +73,12 @@ export default function RankingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 p-6 pb-32 text-white">
 
-      {/* TITLE */}
+      {/* 🏆 TITLE */}
       <h1 className="text-4xl font-bold mb-8 text-center">
         🏆 Reyting
       </h1>
 
-      {/* TOP USERS */}
+      {/* 👑 TOP USERS */}
       <div className="space-y-4">
 
         {users.map((user, index) => (
@@ -58,24 +87,44 @@ export default function RankingPage() {
             key={user.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 backdrop-blur-xl rounded-3xl p-5 flex items-center justify-between"
+            className={`
+              rounded-3xl p-5 flex items-center justify-between backdrop-blur-xl border transition-all
+              ${index === 0
+                ? "bg-yellow-400/20 border-yellow-300 shadow-[0_0_30px_rgba(255,215,0,0.5)]"
+                : index === 1
+                ? "bg-gray-300/10 border-gray-300/30"
+                : index === 2
+                ? "bg-orange-400/10 border-orange-300/30"
+                : "bg-white/10 border-white/10"}
+            `}
           >
 
             {/* LEFT */}
             <div className="flex items-center gap-4">
 
-              {/* POSITION */}
-              <div className="text-2xl font-bold w-10">
-                #{index + 1}
+              {/* 🏅 POSITION */}
+              <div className="text-3xl w-12 text-center">
+
+                {index === 0 && "👑"}
+                {index === 1 && "🥈"}
+                {index === 2 && "🥉"}
+
+                {index > 2 && (
+                  <span className="font-bold text-white">
+                    #{index + 1}
+                  </span>
+                )}
+
               </div>
 
-              {/* AVATAR */}
-              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-xl font-bold">
+              {/* 👤 AVATAR */}
+              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-xl font-bold shadow-lg">
                 {user.email?.[0]?.toUpperCase()}
               </div>
 
-              {/* INFO */}
+              {/* 📄 INFO */}
               <div>
+
                 <p className="font-bold text-lg">
                   {user.email?.split("@")[0]}
                 </p>
@@ -83,6 +132,7 @@ export default function RankingPage() {
                 <p className="text-sm opacity-70">
                   {user.tests_completed || 0} ta test
                 </p>
+
               </div>
 
             </div>
@@ -91,7 +141,7 @@ export default function RankingPage() {
             <div className="text-right">
 
               <p className="text-2xl font-bold text-yellow-300">
-                {user.xp || 0} XP
+                ⚡ {user.xp || 0} XP
               </p>
 
               <p className="text-sm opacity-70">
