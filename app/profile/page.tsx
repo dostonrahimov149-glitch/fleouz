@@ -14,30 +14,41 @@ export default function ProfilePage() {
   useEffect(() => {
     const getProfile = async () => {
 
-      // auth user olish
+      // 🔐 auth user olish
       const {
-        data: { user },
+        data: { user: authUser },
       } = await supabase.auth.getUser();
 
-      // login qilmagan bo‘lsa
-      if (!user) {
+      // ❌ login qilmagan bo‘lsa
+      if (!authUser) {
         router.push("/login");
         return;
       }
 
-      // profiles tabledan user olish
+      // 📦 profiles tabledan olish
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
-        .single();
+        .eq("id", authUser.id)
+        .maybeSingle();
 
       if (error) {
         console.log(error);
       }
 
+      // ✅ profile topilgan bo‘lsa
       if (data) {
         setUser(data);
+      }
+
+      // ⚠️ profile yo‘q bo‘lsa fallback
+      else {
+        setUser({
+          email: authUser.email,
+          xp: 0,
+          tests_completed: 0,
+          average_score: 0,
+        });
       }
 
       setLoading(false);
@@ -46,21 +57,21 @@ export default function ProfilePage() {
     getProfile();
   }, [router]);
 
+  // ⏳ loading
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white text-2xl">
         Loading...
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
-  // fake percentage hozircha
+  // 📊 natija
   const percent = user.average_score || 0;
 
+  // 🎯 level
   let level = "A1";
 
   if (percent >= 90) level = "C1";
@@ -68,6 +79,7 @@ export default function ProfilePage() {
   else if (percent >= 60) level = "B1";
   else if (percent >= 40) level = "A2";
 
+  // 🚪 logout
   const logout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
@@ -127,6 +139,7 @@ export default function ProfilePage() {
             whileHover={{ scale: 1.05 }}
             className={`bg-gradient-to-br ${item.color} p-5 rounded-2xl shadow-lg text-center`}
           >
+
             <p className="text-2xl font-bold">
               {item.value}
             </p>
@@ -134,6 +147,7 @@ export default function ProfilePage() {
             <p className="text-sm opacity-80">
               {item.label}
             </p>
+
           </motion.div>
         ))}
 
@@ -170,6 +184,7 @@ export default function ProfilePage() {
           />
 
         </div>
+
       </div>
 
       {/* ⚙️ SETTINGS */}
