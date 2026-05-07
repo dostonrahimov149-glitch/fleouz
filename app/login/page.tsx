@@ -226,7 +226,7 @@ export default function LoginPage() {
 
       {/* 🔻 FOOTER */}
       <div className="text-center text-white/60 text-xs mb-3">
-        Powered by <span className="font-semibold">FLEOUZ</span>
+        Powered by <span className="font-semibold">Doston Raximov</span>
       </div>
 
     </div>
