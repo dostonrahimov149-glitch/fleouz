@@ -77,37 +77,62 @@ export default function ExamEngine({
   else if (percent >= 60) level = "B1";
   else if (percent >= 40) level = "A2";
 
-  // ⏰ TIME FORMAT
+  // ⏰ TIME
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
 
-  // 🚀 SAVE RESULT
+  // 🚀 FINISH EXAM
   const handleFinish = async () => {
 
-    // 🔐 USER
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
 
-    if (user) {
+      // 🔐 AUTH USER
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setFinished(true);
+        return;
+      }
 
       // 📦 PROFILE
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (profile) {
+      // 🆕 PROFILE YO‘Q BO‘LSA CREATE
+      if (!profile) {
+
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: user.id,
+              email: user.email,
+              xp: percent,
+              tests_completed: 1,
+              average_score: percent,
+            },
+          ]);
+
+        if (insertError) {
+          console.log(insertError);
+        }
+
+      } else {
+
+        // 📊 OLD VALUES
+        const oldXP =
+          profile.xp || 0;
 
         const oldTests =
           profile.tests_completed || 0;
 
         const oldAverage =
           profile.average_score || 0;
-
-        const oldXP =
-          profile.xp || 0;
 
         // 🆕 NEW VALUES
         const newTests = oldTests + 1;
@@ -126,9 +151,9 @@ export default function ExamEngine({
         const { error } = await supabase
           .from("profiles")
           .update({
+            xp: newXP,
             tests_completed: newTests,
             average_score: newAverage,
-            xp: newXP,
           })
           .eq("id", user.id);
 
@@ -139,13 +164,16 @@ export default function ExamEngine({
         }
 
       }
+
+    } catch (err) {
+      console.log(err);
     }
 
-    // 🎉 FINISH
+    // 🎉 RESULT SCREEN
     setFinished(true);
   };
 
-  // 🎉 RESULT SCREEN
+  // 🎉 RESULT
   if (finished) {
 
     return (
@@ -271,9 +299,7 @@ export default function ExamEngine({
             className="h-1 bg-gradient-to-r from-blue-400 to-purple-500"
             style={{
               width: `${
-                ((current + 1) /
-                  questions.length) *
-                100
+                ((current + 1) / questions.length) * 100
               }%`,
             }}
           />
@@ -347,7 +373,9 @@ export default function ExamEngine({
               {current === questions.length - 1 ? (
 
                 <button
-                  onClick={handleFinish}
+                  onClick={async () => {
+                    await handleFinish();
+                  }}
                   className="px-6 py-2 bg-green-500 rounded-xl"
                 >
                   Finish
