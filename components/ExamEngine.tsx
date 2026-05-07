@@ -17,24 +17,41 @@ export default function ExamEngine({
   questions: Question[];
   premiumLimit?: number;
 }) {
+
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({});
+
+  const [answers, setAnswers] = useState<{
+    [key: number]: string;
+  }>({});
+
   const [time, setTime] = useState(1800);
+
   const [finished, setFinished] = useState(false);
 
   const isPremiumLocked = current >= premiumLimit;
 
   // ⏱ TIMER
   useEffect(() => {
+
     if (time > 0 && !finished) {
-      const t = setTimeout(() => setTime(time - 1), 1000);
+
+      const t = setTimeout(() => {
+        setTime(time - 1);
+      }, 1000);
+
       return () => clearTimeout(t);
+
     } else if (time === 0) {
-      setFinished(true);
+
+      handleFinish();
+
     }
+
   }, [time, finished]);
 
+  // ✅ ANSWER
   const handleSelect = (opt: string) => {
+
     if (isPremiumLocked) return;
 
     setAnswers({
@@ -43,6 +60,7 @@ export default function ExamEngine({
     });
   };
 
+  // 📊 SCORE
   const score = questions.filter(
     (q, i) => answers[i] === q.answer
   ).length;
@@ -51,6 +69,7 @@ export default function ExamEngine({
     (score / questions.length) * 100
   );
 
+  // 🎓 LEVEL
   let level = "A1";
 
   if (percent >= 90) level = "C1";
@@ -58,24 +77,21 @@ export default function ExamEngine({
   else if (percent >= 60) level = "B1";
   else if (percent >= 40) level = "A2";
 
+  // ⏰ TIME FORMAT
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
 
-  // 🚀 SAVE RESULT + XP
+  // 🚀 SAVE RESULT
   const handleFinish = async () => {
 
-    // 🎉 test finished
-    setFinished(true);
-
-    // 🔐 auth user
+    // 🔐 USER
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // 👤 user mavjud bo‘lsa
     if (user) {
 
-      // 📦 profile olish
+      // 📦 PROFILE
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
@@ -84,34 +100,56 @@ export default function ExamEngine({
 
       if (profile) {
 
-        // 🧮 yangi qiymatlar
-        const newTests =
-          (profile.tests_completed || 0) + 1;
+        const oldTests =
+          profile.tests_completed || 0;
+
+        const oldAverage =
+          profile.average_score || 0;
+
+        const oldXP =
+          profile.xp || 0;
+
+        // 🆕 NEW VALUES
+        const newTests = oldTests + 1;
 
         const newAverage = Math.round(
           (
-            (profile.average_score || 0) *
-            (profile.tests_completed || 0) +
+            (oldAverage * oldTests) +
             percent
           ) / newTests
         );
 
-        // 🚀 update profile
-        await supabase
+        const newXP =
+          oldXP + percent;
+
+        // 🚀 UPDATE
+        const { error } = await supabase
           .from("profiles")
           .update({
             tests_completed: newTests,
-            xp: (profile.xp || 0) + percent,
             average_score: newAverage,
+            xp: newXP,
           })
           .eq("id", user.id);
+
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("PROFILE UPDATED ✅");
+        }
+
       }
     }
+
+    // 🎉 FINISH
+    setFinished(true);
   };
 
   // 🎉 RESULT SCREEN
   if (finished) {
+
     return (
+
       <div className="min-h-screen bg-black text-white p-6">
 
         <h1 className="text-4xl font-bold text-center mb-6">
@@ -137,10 +175,12 @@ export default function ExamEngine({
         <div className="space-y-4 max-w-2xl mx-auto">
 
           {questions.map((q, i) => {
+
             const userAnswer = answers[i];
             const correct = q.answer;
 
             return (
+
               <div
                 key={i}
                 className="p-4 bg-white/10 rounded-xl"
@@ -166,16 +206,21 @@ export default function ExamEngine({
                   </div>
 
                 ))}
+
               </div>
+
             );
           })}
 
         </div>
+
       </div>
+
     );
   }
 
   return (
+
     <div className="min-h-screen flex bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white">
 
       {/* 📌 SIDEBAR */}
@@ -187,13 +232,13 @@ export default function ExamEngine({
             key={i}
             onClick={() => setCurrent(i)}
             className={`w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer text-sm
-              ${
-                current === i
-                  ? "bg-blue-500"
-                  : answers[i]
-                  ? "bg-green-500"
-                  : "bg-white/20"
-              }`}
+            ${
+              current === i
+                ? "bg-blue-500"
+                : answers[i]
+                ? "bg-green-500"
+                : "bg-white/20"
+            }`}
           >
             {i + 1}
           </div>
@@ -226,7 +271,9 @@ export default function ExamEngine({
             className="h-1 bg-gradient-to-r from-blue-400 to-purple-500"
             style={{
               width: `${
-                ((current + 1) / questions.length) * 100
+                ((current + 1) /
+                  questions.length) *
+                100
               }%`,
             }}
           />
@@ -239,9 +286,11 @@ export default function ExamEngine({
           <div className="max-w-xl w-full">
 
             {isPremiumLocked && (
+
               <div className="bg-yellow-500 text-black p-4 rounded-xl mb-4 text-center">
                 🔒 Premium ochish kerak
               </div>
+
             )}
 
             <motion.h2
@@ -256,7 +305,9 @@ export default function ExamEngine({
             <div className="space-y-4">
 
               {questions[current].options.map((opt, i) => {
-                const selected = answers[current] === opt;
+
+                const selected =
+                  answers[current] === opt;
 
                 return (
 
@@ -284,7 +335,9 @@ export default function ExamEngine({
 
               <button
                 onClick={() =>
-                  setCurrent(Math.max(current - 1, 0))
+                  setCurrent(
+                    Math.max(current - 1, 0)
+                  )
                 }
                 className="px-4 py-2 bg-white/20 rounded-xl"
               >
@@ -303,7 +356,9 @@ export default function ExamEngine({
               ) : (
 
                 <button
-                  onClick={() => setCurrent(current + 1)}
+                  onClick={() =>
+                    setCurrent(current + 1)
+                  }
                   className="px-6 py-2 bg-blue-500 rounded-xl"
                 >
                   →
@@ -314,8 +369,12 @@ export default function ExamEngine({
             </div>
 
           </div>
+
         </div>
+
       </div>
+
     </div>
+
   );
 }
