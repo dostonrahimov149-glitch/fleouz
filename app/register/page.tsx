@@ -5,12 +5,22 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+
   const router = useRouter();
 
+  const [fullName, setFullName] = useState("");
+
   const [email, setEmail] = useState("");
+
   const [password, setPassword] = useState("");
 
   const handleRegister = async () => {
+
+    // ❌ EMPTY CHECK
+    if (!fullName || !email || !password) {
+      alert("Barcha maydonlarni to‘ldiring ❌");
+      return;
+    }
 
     // 🔐 AUTH REGISTER
     const { data, error } = await supabase.auth.signUp({
@@ -31,9 +41,17 @@ export default function RegisterPage() {
         .insert([
           {
             id: data.user.id,
+
+            full_name: fullName,
+
             email: data.user.email,
+
             xp: 0,
+
+            weekly_xp: 0,
+
             tests_completed: 0,
+
             average_score: 0,
           },
         ]);
@@ -41,14 +59,17 @@ export default function RegisterPage() {
       if (profileError) {
         console.log(profileError);
       }
+
     }
 
     alert("Ro‘yxatdan o‘tildi ✅");
 
     router.push("/login");
+
   };
 
   return (
+
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-800 to-blue-900 p-6">
 
       <div className="w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
@@ -61,6 +82,16 @@ export default function RegisterPage() {
           FLEOUZ platformasiga xush kelibsiz
         </p>
 
+        {/* 👤 FULL NAME */}
+        <input
+          type="text"
+          placeholder="Ismingiz"
+          className="w-full p-4 rounded-2xl bg-white/20 text-white placeholder:text-white/50 outline-none mb-4"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
+
+        {/* 📧 EMAIL */}
         <input
           type="email"
           placeholder="Email"
@@ -69,6 +100,7 @@ export default function RegisterPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
+        {/* 🔒 PASSWORD */}
         <input
           type="password"
           placeholder="Parol"
@@ -77,6 +109,7 @@ export default function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {/* 🚀 BUTTON */}
         <button
           onClick={handleRegister}
           className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg hover:scale-[1.02] transition"
@@ -84,17 +117,24 @@ export default function RegisterPage() {
           Ro‘yxatdan o‘tish 🚀
         </button>
 
+        {/* 🔁 LOGIN */}
         <p className="text-center text-white/60 text-sm mt-6">
+
           Hisobingiz bormi?{" "}
+
           <span
             onClick={() => router.push("/login")}
             className="text-white font-semibold cursor-pointer hover:underline"
           >
             Kirish
           </span>
+
         </p>
 
       </div>
+
     </div>
+
   );
+
 }

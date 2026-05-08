@@ -49,7 +49,7 @@ export default function ExamEngine({
 
   }, [time, finished]);
 
-  // ✅ ANSWER
+  // ✅ SELECT ANSWER
   const handleSelect = (opt: string) => {
 
     if (isPremiumLocked) return;
@@ -58,6 +58,7 @@ export default function ExamEngine({
       ...answers,
       [current]: opt,
     });
+
   };
 
   // 📊 SCORE
@@ -77,7 +78,7 @@ export default function ExamEngine({
   else if (percent >= 60) level = "B1";
   else if (percent >= 40) level = "A2";
 
-  // ⏰ TIME
+  // ⏰ TIMER FORMAT
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
 
@@ -91,6 +92,7 @@ export default function ExamEngine({
         data: { user },
       } = await supabase.auth.getUser();
 
+      // ❌ USER YO‘Q
       if (!user) {
         setFinished(true);
         return;
@@ -103,7 +105,7 @@ export default function ExamEngine({
         .eq("id", user.id)
         .maybeSingle();
 
-      // 🆕 PROFILE YO‘Q BO‘LSA CREATE
+      // 🆕 AGAR PROFILE YO‘Q BO‘LSA
       if (!profile) {
 
         const { error: insertError } = await supabase
@@ -111,9 +113,15 @@ export default function ExamEngine({
           .insert([
             {
               id: user.id,
+
               email: user.email,
+
               xp: percent,
+
+              weekly_xp: percent,
+
               tests_completed: 1,
+
               average_score: percent,
             },
           ]);
@@ -128,15 +136,20 @@ export default function ExamEngine({
         const oldXP =
           profile.xp || 0;
 
+        const oldWeeklyXP =
+          profile.weekly_xp || 0;
+
         const oldTests =
           profile.tests_completed || 0;
 
         const oldAverage =
           profile.average_score || 0;
 
-        // 🆕 NEW VALUES
-        const newTests = oldTests + 1;
+        // 🆕 NEW TESTS
+        const newTests =
+          oldTests + 1;
 
+        // 🆕 NEW AVERAGE
         const newAverage = Math.round(
           (
             (oldAverage * oldTests) +
@@ -144,16 +157,27 @@ export default function ExamEngine({
           ) / newTests
         );
 
+        // 🆕 NEW XP
         const newXP =
           oldXP + percent;
+
+        // 🆕 NEW WEEKLY XP
+        const newWeeklyXP =
+          oldWeeklyXP + percent;
 
         // 🚀 UPDATE
         const { error } = await supabase
           .from("profiles")
           .update({
+
             xp: newXP,
+
+            weekly_xp: newWeeklyXP,
+
             tests_completed: newTests,
+
             average_score: newAverage,
+
           })
           .eq("id", user.id);
 
@@ -166,14 +190,17 @@ export default function ExamEngine({
       }
 
     } catch (err) {
+
       console.log(err);
+
     }
 
     // 🎉 RESULT SCREEN
     setFinished(true);
+
   };
 
-  // 🎉 RESULT
+  // 🎉 RESULT PAGE
   if (finished) {
 
     return (
@@ -238,6 +265,7 @@ export default function ExamEngine({
               </div>
 
             );
+
           })}
 
         </div>
@@ -245,6 +273,7 @@ export default function ExamEngine({
       </div>
 
     );
+
   }
 
   return (
@@ -352,6 +381,7 @@ export default function ExamEngine({
                   </motion.div>
 
                 );
+
               })}
 
             </div>
@@ -405,4 +435,5 @@ export default function ExamEngine({
     </div>
 
   );
+
 }

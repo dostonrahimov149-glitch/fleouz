@@ -100,7 +100,7 @@ export default function ProfilePage() {
         </div>
 
         <h1 className="text-2xl font-bold">
-          {user.email?.split("@")[0]}
+          {user.full_name || user.email?.split("@")[0]}
         </h1>
 
         <p className="text-sm opacity-70">
