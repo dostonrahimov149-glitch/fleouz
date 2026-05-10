@@ -153,7 +153,7 @@ export default function BottomMenu() {
           ? "Classement"
           : "Reyting",
 
-      icon: "/target.png?v=2",
+      icon: "/result1.png?v=2",
 
       path: "/ranking",
 
