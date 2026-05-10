@@ -28,9 +28,45 @@ export default function ExamEngine({
 
   const [time, setTime] = useState(1800);
 
-  const [finished, setFinished] = useState(false);
+  const [finished, setFinished] =
+    useState(false);
 
-  const isPremiumLocked = current >= premiumLimit;
+  const language =
+    typeof window !== "undefined"
+      ? localStorage.getItem("language") || "uz"
+      : "uz";
+
+  const text = {
+    uz: {
+      result: "Natija",
+      retry: "Qayta urinish",
+      dashboard: "Bosh sahifa",
+      ranking: "Reyting",
+      premium:
+        "🔒 Premium ochish kerak",
+      finish: "Tugatish",
+      congrats: "Tabriklaymiz!",
+    },
+
+    fr: {
+      result: "Résultat",
+      retry: "Réessayer",
+      dashboard: "Accueil",
+      ranking: "Classement",
+      premium:
+        "🔒 Premium requis",
+      finish: "Terminer",
+      congrats: "Félicitations !",
+    },
+  };
+
+  const t =
+    language === "fr"
+      ? text.fr
+      : text.uz;
+
+  const isPremiumLocked =
+    current >= premiumLimit;
 
   // ⏱ TIMER
   useEffect(() => {
@@ -43,7 +79,9 @@ export default function ExamEngine({
 
       return () => clearTimeout(t);
 
-    } else if (time === 0) {
+    }
+
+    else if (time === 0) {
 
       handleFinish();
 
@@ -51,7 +89,7 @@ export default function ExamEngine({
 
   }, [time, finished]);
 
-  // ✅ SELECT ANSWER
+  // ✅ SELECT
   const handleSelect = (opt: string) => {
 
     if (isPremiumLocked) return;
@@ -65,7 +103,8 @@ export default function ExamEngine({
 
   // 📊 SCORE
   const score = questions.filter(
-    (q, i) => answers[i] === q.answer
+    (q, i) =>
+      answers[i] === q.answer
   ).length;
 
   const percent = Math.round(
@@ -76,49 +115,57 @@ export default function ExamEngine({
   let level = "A1";
 
   if (percent >= 90) level = "C1";
-  else if (percent >= 75) level = "B2";
-  else if (percent >= 60) level = "B1";
-  else if (percent >= 40) level = "A2";
+  else if (percent >= 75)
+    level = "B2";
+  else if (percent >= 60)
+    level = "B1";
+  else if (percent >= 40)
+    level = "A2";
 
-  // ⏰ TIMER FORMAT
-  const minutes = Math.floor(time / 60);
+  // ⏰ TIMER
+  const minutes = Math.floor(
+    time / 60
+  );
+
   const seconds = time % 60;
 
-  // 🚀 FINISH EXAM
+  // 🚀 FINISH
   const handleFinish = async () => {
 
     try {
 
-      // 🔐 AUTH USER
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
-      // ❌ USER YO‘Q
       if (!user) {
+
         setFinished(true);
         return;
+
       }
 
-      // 📦 PROFILE
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data: profile } =
+        await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .maybeSingle();
 
-      // 🆕 PROFILE YO‘Q
+      const today =
+        new Date()
+          .toISOString()
+          .split("T")[0];
+
+      // 🆕 PROFILE
       if (!profile) {
 
-        const today =
-          new Date().toISOString().split("T")[0];
-
-        const { error: insertError } = await supabase
+        await supabase
           .from("profiles")
           .insert([
             {
               id: user.id,
-
               email: user.email,
 
               xp: percent,
@@ -133,17 +180,24 @@ export default function ExamEngine({
 
               streak: 1,
 
-              last_study_date: today,
+              last_study_date:
+                today,
             },
           ]);
 
-        if (insertError) {
-          console.log(insertError);
-        }
+      }
 
-      } else {
+      // 🔄 UPDATE
+      else {
 
-        // 📊 OLD VALUES
+        const completedTests =
+          profile.completed_tests || [];
+
+        const alreadyCompleted =
+          completedTests.includes(
+            testId
+          );
+
         const oldXP =
           profile.xp || 0;
 
@@ -151,68 +205,55 @@ export default function ExamEngine({
           profile.weekly_xp || 0;
 
         const oldTests =
-          profile.tests_completed || 0;
+          profile.tests_completed ||
+          0;
 
         const oldAverage =
-          profile.average_score || 0;
+          profile.average_score ||
+          0;
 
-        // 🛡 COMPLETED TESTS
-        const completedTests =
-          profile.completed_tests || [];
-
-        const alreadyCompleted =
-          completedTests.includes(testId);
-
-        // 🔥 STREAK SYSTEM
-        const today =
-          new Date().toISOString().split("T")[0];
+        // 🔥 STREAK
+        let newStreak =
+          profile.streak || 0;
 
         const lastStudyDate =
           profile.last_study_date;
 
-        let newStreak =
-          profile.streak || 0;
-
-        // FIRST TIME
         if (!lastStudyDate) {
 
           newStreak = 1;
 
-        } else {
+        }
+
+        else {
 
           const lastDate =
-            new Date(lastStudyDate);
+            new Date(
+              lastStudyDate
+            );
 
           const currentDate =
             new Date(today);
 
-          const diffTime =
-            currentDate.getTime() -
-            lastDate.getTime();
-
           const diffDays =
             Math.floor(
-              diffTime /
-              (1000 * 60 * 60 * 24)
+              (
+                currentDate.getTime() -
+                lastDate.getTime()
+              ) /
+                (1000 *
+                  60 *
+                  60 *
+                  24)
             );
 
-          // NEXT DAY
           if (diffDays === 1) {
 
             newStreak += 1;
 
           }
 
-          // SAME DAY
-          else if (diffDays === 0) {
-
-            newStreak =
-              profile.streak || 0;
-
-          }
-
-          // RESET
-          else {
+          else if (diffDays > 1) {
 
             newStreak = 1;
 
@@ -220,75 +261,65 @@ export default function ExamEngine({
 
         }
 
-        // 🆕 TEST COUNT
         const newTests =
           alreadyCompleted
             ? oldTests
             : oldTests + 1;
 
-        // 🆕 AVERAGE
         const newAverage =
           alreadyCompleted
             ? oldAverage
             : Math.round(
                 (
-                  (oldAverage * oldTests) +
+                  oldAverage *
+                    oldTests +
                   percent
                 ) / newTests
               );
 
-        // 🆕 XP
         const newXP =
           alreadyCompleted
             ? oldXP
             : oldXP + percent;
 
-        // 🆕 WEEKLY XP
         const newWeeklyXP =
           alreadyCompleted
             ? oldWeeklyXP
-            : oldWeeklyXP + percent;
+            : oldWeeklyXP +
+              percent;
 
-        // 🆕 COMPLETED TESTS
-        const updatedCompletedTests =
+        const updatedCompleted =
           alreadyCompleted
             ? completedTests
-            : [...completedTests, testId];
+            : [
+                ...completedTests,
+                testId,
+              ];
 
-        // 🚀 UPDATE
-        const { error } = await supabase
+        await supabase
           .from("profiles")
           .update({
 
             xp: newXP,
 
-            weekly_xp: newWeeklyXP,
+            weekly_xp:
+              newWeeklyXP,
 
-            tests_completed: newTests,
+            tests_completed:
+              newTests,
 
-            average_score: newAverage,
+            average_score:
+              newAverage,
 
             completed_tests:
-              updatedCompletedTests,
+              updatedCompleted,
 
             streak: newStreak,
 
-            last_study_date: today,
-
+            last_study_date:
+              today,
           })
           .eq("id", user.id);
-
-        if (error) {
-
-          console.log(error);
-
-        } else {
-
-          console.log(
-            "PROFILE UPDATED ✅"
-          );
-
-        }
 
       }
 
@@ -298,7 +329,6 @@ export default function ExamEngine({
 
     }
 
-    // 🎉 RESULT SCREEN
     setFinished(true);
 
   };
@@ -308,64 +338,167 @@ export default function ExamEngine({
 
     return (
 
-      <div className="min-h-screen bg-black text-white p-6">
+      <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black text-white p-6">
 
-        <h1 className="text-4xl font-bold text-center mb-6">
-          🎉 Natija
-        </h1>
-
+        {/* HEADER */}
         <div className="text-center mb-10">
 
-          <p className="text-xl">
-            {score} / {questions.length}
-          </p>
+          <motion.h1
+            initial={{
+              scale: 0.5,
+              opacity: 0,
+            }}
+            animate={{
+              scale: 1,
+              opacity: 1,
+            }}
+            className="text-5xl font-extrabold mb-4"
+          >
+            🎉 {t.result}
+          </motion.h1>
 
-          <p className="text-lg">
-            {percent}%
-          </p>
-
-          <p className="text-2xl text-blue-400 mt-2">
-            {level}
+          <p className="text-zinc-400">
+            {t.congrats}
           </p>
 
         </div>
 
-        <div className="space-y-4 max-w-2xl mx-auto">
+        {/* SCORE */}
+        <motion.div
+          initial={{
+            y: 30,
+            opacity: 0,
+          }}
+          animate={{
+            y: 0,
+            opacity: 1,
+          }}
+          className="max-w-xl mx-auto bg-white/10 border border-white/10 rounded-3xl p-8 text-center backdrop-blur-xl shadow-2xl mb-10"
+        >
+
+          <div className="text-6xl font-extrabold text-blue-400 mb-4">
+            {percent}%
+          </div>
+
+          <div className="text-2xl font-bold mb-3">
+            {score} / {questions.length}
+          </div>
+
+          <div className="text-4xl font-bold text-purple-400 mb-6">
+            {level}
+          </div>
+
+          <div className="flex justify-center gap-4 flex-wrap">
+
+            <div className="bg-blue-500/20 border border-blue-400 px-5 py-3 rounded-2xl">
+              ⚡ +{percent} XP
+            </div>
+
+            <div className="bg-orange-500/20 border border-orange-400 px-5 py-3 rounded-2xl">
+              🔥 +1 Streak
+            </div>
+
+          </div>
+
+        </motion.div>
+
+        {/* BUTTONS */}
+        <div className="flex flex-wrap justify-center gap-4 mb-10">
+
+          <button
+            onClick={() => {
+
+              setAnswers({});
+              setCurrent(0);
+              setTime(1800);
+              setFinished(false);
+
+            }}
+            className="px-6 py-3 rounded-2xl bg-blue-500 hover:bg-blue-600 transition font-bold"
+          >
+            {t.retry}
+          </button>
+
+          <button
+            onClick={() => {
+              window.location.href =
+                "/dashboard";
+            }}
+            className="px-6 py-3 rounded-2xl bg-purple-500 hover:bg-purple-600 transition font-bold"
+          >
+            {t.dashboard}
+          </button>
+
+          <button
+            onClick={() => {
+              window.location.href =
+                "/ranking";
+            }}
+            className="px-6 py-3 rounded-2xl bg-pink-500 hover:bg-pink-600 transition font-bold"
+          >
+            {t.ranking}
+          </button>
+
+        </div>
+
+        {/* ANSWERS */}
+        <div className="space-y-6 max-w-3xl mx-auto">
 
           {questions.map((q, i) => {
 
-            const userAnswer = answers[i];
-            const correct = q.answer;
+            const userAnswer =
+              answers[i];
+
+            const correct =
+              q.answer;
 
             return (
 
-              <div
+              <motion.div
                 key={i}
-                className="p-4 bg-white/10 rounded-xl"
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                className="p-6 bg-white/10 border border-white/10 rounded-3xl backdrop-blur-xl"
               >
 
-                <p className="font-bold mb-2">
-                  {i + 1}. {q.question}
+                <p className="font-bold text-xl mb-4">
+                  {i + 1}.{" "}
+                  {q.question}
                 </p>
 
-                {q.options.map((opt, idx) => (
+                <div className="space-y-2">
 
-                  <div
-                    key={idx}
-                    className={`p-2 rounded mb-1 ${
-                      opt === correct
-                        ? "bg-green-500"
-                        : opt === userAnswer
-                        ? "bg-red-500"
-                        : "bg-white/5"
-                    }`}
-                  >
-                    {opt}
-                  </div>
+                  {q.options.map(
+                    (opt, idx) => (
 
-                ))}
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-xl
+                        ${
+                          opt ===
+                          correct
+                            ? "bg-green-500"
+                            : opt ===
+                              userAnswer
+                            ? "bg-red-500"
+                            : "bg-white/5"
+                        }`}
+                      >
+                        {opt}
+                      </div>
 
-              </div>
+                    )
+                  )}
+
+                </div>
+
+              </motion.div>
 
             );
 
@@ -383,15 +516,17 @@ export default function ExamEngine({
 
     <div className="min-h-screen flex bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white">
 
-      {/* 📌 SIDEBAR */}
+      {/* SIDEBAR */}
       <div className="w-20 bg-black/30 flex flex-col items-center py-4 space-y-2">
 
         {questions.map((_, i) => (
 
           <div
             key={i}
-            onClick={() => setCurrent(i)}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer text-sm
+            onClick={() =>
+              setCurrent(i)
+            }
+            className={`w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer
             ${
               current === i
                 ? "bg-blue-500"
@@ -407,38 +542,44 @@ export default function ExamEngine({
 
       </div>
 
-      {/* 🧠 MAIN */}
+      {/* MAIN */}
       <div className="flex-1 flex flex-col">
 
-        {/* 🔝 TOP */}
+        {/* TOP */}
         <div className="flex justify-between p-4 bg-white/10">
 
           <span>
-            ⏱ {minutes}:{seconds < 10 ? "0" : ""}
+            ⏱ {minutes}:
+            {seconds < 10
+              ? "0"
+              : ""}
             {seconds}
           </span>
 
           <span>
-            {current + 1} / {questions.length}
+            {current + 1} /{" "}
+            {questions.length}
           </span>
 
         </div>
 
-        {/* 📊 PROGRESS */}
+        {/* PROGRESS */}
         <div className="h-1 bg-white/10">
 
           <div
             className="h-1 bg-gradient-to-r from-blue-400 to-purple-500"
             style={{
               width: `${
-                ((current + 1) / questions.length) * 100
+                ((current + 1) /
+                  questions.length) *
+                100
               }%`,
             }}
           />
 
         </div>
 
-        {/* ❓ QUESTION */}
+        {/* QUESTION */}
         <div className="flex-1 flex items-center justify-center p-6">
 
           <div className="max-w-xl w-full">
@@ -446,81 +587,109 @@ export default function ExamEngine({
             {isPremiumLocked && (
 
               <div className="bg-yellow-500 text-black p-4 rounded-xl mb-4 text-center">
-                🔒 Premium ochish kerak
+                {t.premium}
               </div>
 
             )}
 
             <motion.h2
               key={current}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-2xl font-bold mb-6 text-center"
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              className="text-3xl font-bold mb-8 text-center"
             >
-              {questions[current].question}
+              {
+                questions[current]
+                  .question
+              }
             </motion.h2>
 
             <div className="space-y-4">
 
-              {questions[current].options.map((opt, i) => {
+              {questions[
+                current
+              ].options.map(
+                (opt, i) => {
 
-                const selected =
-                  answers[current] === opt;
+                  const selected =
+                    answers[
+                      current
+                    ] === opt;
 
-                return (
+                  return (
 
-                  <motion.div
-                    key={i}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSelect(opt)}
-                    className={`p-4 rounded-2xl cursor-pointer transition border
-                    ${
-                      selected
-                        ? "bg-blue-500 scale-105 shadow-xl"
-                        : "bg-white/10 hover:bg-white/20"
-                    }`}
-                  >
-                    {opt}
-                  </motion.div>
+                    <motion.div
+                      key={i}
+                      whileTap={{
+                        scale: 0.97,
+                      }}
+                      onClick={() =>
+                        handleSelect(
+                          opt
+                        )
+                      }
+                      className={`p-4 rounded-2xl cursor-pointer transition border
+                      ${
+                        selected
+                          ? "bg-blue-500 scale-105 shadow-2xl"
+                          : "bg-white/10 hover:bg-white/20"
+                      }`}
+                    >
+                      {opt}
+                    </motion.div>
 
-                );
+                  );
 
-              })}
+                }
+              )}
 
             </div>
 
-            {/* ➡️ NAV */}
-            <div className="flex justify-between mt-8">
+            {/* NAV */}
+            <div className="flex justify-between mt-10">
 
               <button
                 onClick={() =>
                   setCurrent(
-                    Math.max(current - 1, 0)
+                    Math.max(
+                      current - 1,
+                      0
+                    )
                   )
                 }
-                className="px-4 py-2 bg-white/20 rounded-xl"
+                className="px-5 py-3 bg-white/20 rounded-2xl"
               >
                 ←
               </button>
 
-              {current === questions.length - 1 ? (
+              {current ===
+              questions.length -
+                1 ? (
 
                 <button
-                  onClick={async () => {
-                    await handleFinish();
-                  }}
-                  className="px-6 py-2 bg-green-500 rounded-xl"
+                  onClick={
+                    handleFinish
+                  }
+                  className="px-8 py-3 bg-green-500 rounded-2xl font-bold"
                 >
-                  Finish
+                  {t.finish}
                 </button>
 
               ) : (
 
                 <button
                   onClick={() =>
-                    setCurrent(current + 1)
+                    setCurrent(
+                      current + 1
+                    )
                   }
-                  className="px-6 py-2 bg-blue-500 rounded-xl"
+                  className="px-8 py-3 bg-blue-500 rounded-2xl font-bold"
                 >
                   →
                 </button>
