@@ -14,7 +14,8 @@ export async function GET() {
       .from("profiles")
       .update({
         weekly_xp: 0,
-      });
+      })
+      .not("id", "is", null);
 
     if (error) {
 
