@@ -4,7 +4,9 @@ import ExamEngine from "@/components/ExamEngine";
 import { useParams } from "next/navigation";
 
 export default function TestPage() {
+
   const params = useParams();
+
   const id = Number(params.id);
 
   const questions = [
@@ -40,5 +42,13 @@ export default function TestPage() {
     },
   ];
 
-  return <ExamEngine questions={questions} />;
+  return (
+
+    <ExamEngine
+      questions={questions}
+      testId={`pragmatique-${id}`}
+    />
+
+  );
+
 }

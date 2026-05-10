@@ -13,9 +13,11 @@ type Question = {
 export default function ExamEngine({
   questions,
   premiumLimit = 5,
+  testId,
 }: {
   questions: Question[];
   premiumLimit?: number;
+  testId: string;
 }) {
 
   const [current, setCurrent] = useState(0);
@@ -105,7 +107,7 @@ export default function ExamEngine({
         .eq("id", user.id)
         .maybeSingle();
 
-      // 🆕 AGAR PROFILE YO‘Q BO‘LSA
+      // 🆕 PROFILE YO‘Q
       if (!profile) {
 
         const { error: insertError } = await supabase
@@ -123,6 +125,8 @@ export default function ExamEngine({
               tests_completed: 1,
 
               average_score: percent,
+
+              completed_tests: [testId],
             },
           ]);
 
@@ -145,25 +149,41 @@ export default function ExamEngine({
         const oldAverage =
           profile.average_score || 0;
 
-        // 🆕 NEW TESTS
+        // 🛡 COMPLETED TESTS
+        const completedTests =
+          profile.completed_tests || [];
+
+        const alreadyCompleted =
+          completedTests.includes(testId);
+
+        // 🆕 TEST COUNT
         const newTests =
-          oldTests + 1;
+          alreadyCompleted
+            ? oldTests
+            : oldTests + 1;
 
-        // 🆕 NEW AVERAGE
-        const newAverage = Math.round(
-          (
-            (oldAverage * oldTests) +
-            percent
-          ) / newTests
-        );
+        // 🆕 AVERAGE
+        const newAverage =
+          alreadyCompleted
+            ? oldAverage
+            : Math.round(
+                (
+                  (oldAverage * oldTests) +
+                  percent
+                ) / newTests
+              );
 
-        // 🆕 NEW XP
+        // 🆕 XP
         const newXP =
-          oldXP + percent;
+          alreadyCompleted
+            ? oldXP
+            : oldXP + percent;
 
-        // 🆕 NEW WEEKLY XP
+        // 🆕 WEEKLY XP
         const newWeeklyXP =
-          oldWeeklyXP + percent;
+          alreadyCompleted
+            ? oldWeeklyXP
+            : oldWeeklyXP + percent;
 
         // 🚀 UPDATE
         const { error } = await supabase
@@ -177,6 +197,11 @@ export default function ExamEngine({
             tests_completed: newTests,
 
             average_score: newAverage,
+
+            completed_tests:
+              alreadyCompleted
+                ? completedTests
+                : [...completedTests, testId],
 
           })
           .eq("id", user.id);

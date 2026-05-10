@@ -205,7 +205,7 @@ export default function Dashboard() {
                 </p>
 
                 <p className="text-3xl font-extrabold text-white">
-                  {user.full_name || user.email?.split("@")[0]}
+                  {winner.full_name || winner.email?.split("@")[0]}
                 </p>
 
                 <p className="text-lg text-yellow-200 font-bold">
