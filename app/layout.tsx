@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import BottomMenu from "../components/BottomMenu"; // ✅ TO‘G‘RI
+import BottomMenu from "../components/BottomMenu";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "FLEOUZ",
-  description: "Fransuz tilini zamonaviy o‘rganish platformasi",
+  description:
+    "Fransuz tilini zamonaviy o‘rganish platformasi",
 };
 
 export default function RootLayout({
@@ -23,22 +24,54 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+
   return (
+
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full`}
+      id="root-html"
+      className={`
+        ${geistSans.variable}
+        ${geistMono.variable}
+        h-full
+        dark-theme
+      `}
     >
-      <body className="min-h-screen flex flex-col bg-transparent text-white antialiased">
 
-        {/* CONTENT */}
-        <main className="flex-1 pb-28">
+      <body
+        suppressHydrationWarning
+        className="
+          min-h-screen
+          flex
+          flex-col
+          antialiased
+          transition-all
+          duration-300
+        "
+      >
+
+        {/* 🌍 GLOBAL APP */}
+        <main
+          className="
+            flex-1
+            pb-28
+            bg-app
+            transition-all
+            duration-300
+          "
+        >
+
           {children}
+
         </main>
 
         {/* 🔥 GLOBAL MENU */}
         <BottomMenu />
 
       </body>
+
     </html>
+
   );
+
 }

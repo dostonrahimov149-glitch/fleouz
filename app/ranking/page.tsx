@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
+import { translations } from "@/lib/translations";
 
 export default function RankingPage() {
 
@@ -10,6 +11,24 @@ export default function RankingPage() {
 
   const [loading, setLoading] = useState(true);
 
+  const [lang, setLang] = useState("uz");
+
+  // 🌍 LOAD LANGUAGE
+  useEffect(() => {
+
+    const savedLang =
+      localStorage.getItem("language") || "uz";
+
+    setLang(savedLang);
+
+  }, []);
+
+  const t =
+    translations[
+      lang as keyof typeof translations
+    ];
+
+  // 🔥 GET RANKING
   useEffect(() => {
 
     const getRanking = async () => {
@@ -73,7 +92,7 @@ export default function RankingPage() {
 
     return (
 
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+      <div className="min-h-screen bg-app flex items-center justify-center text-white">
 
         Loading...
 
@@ -85,15 +104,23 @@ export default function RankingPage() {
 
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 p-6 pb-32 text-white">
+    <div className="min-h-screen bg-app p-6 pb-32 text-white">
 
       {/* 🏆 TITLE */}
       <h1 className="text-4xl font-bold mb-2 text-center">
-        🏆 Weekly Reyting
+
+        🏆 {t.champion}
+
       </h1>
 
       <p className="text-center text-white/60 mb-8">
-        Haftaning eng faol o‘quvchilari
+
+        {
+          lang === "fr"
+            ? "Les meilleurs utilisateurs de la semaine"
+            : "Haftaning eng faol foydalanuvchilari"
+        }
+
       </p>
 
       {/* 👑 USERS */}
@@ -111,7 +138,14 @@ export default function RankingPage() {
             whileHover={{ scale: 1.02 }}
 
             className={`
-              rounded-3xl p-5 flex items-center justify-between backdrop-blur-xl border transition-all
+              rounded-3xl
+              p-5
+              flex
+              items-center
+              justify-between
+              backdrop-blur-xl
+              border
+              transition-all
 
               ${index === 0
                 ? "bg-yellow-400/20 border-yellow-300 shadow-[0_0_40px_rgba(255,215,0,0.5)]"
@@ -169,7 +203,13 @@ export default function RankingPage() {
 
                 <p className="text-sm opacity-70">
 
-                  {user.tests_completed || 0} ta test
+                  {user.tests_completed || 0} {
+
+                    lang === "fr"
+                      ? "tests"
+                      : "ta test"
+
+                  }
 
                 </p>
 
@@ -188,7 +228,13 @@ export default function RankingPage() {
 
               <p className="text-sm opacity-70">
 
-                {user.average_score || 0}% natija
+                {user.average_score || 0}% {
+
+                  lang === "fr"
+                    ? "résultat"
+                    : "natija"
+
+                }
 
               </p>
 

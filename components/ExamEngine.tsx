@@ -110,6 +110,9 @@ export default function ExamEngine({
       // 🆕 PROFILE YO‘Q
       if (!profile) {
 
+        const today =
+          new Date().toISOString().split("T")[0];
+
         const { error: insertError } = await supabase
           .from("profiles")
           .insert([
@@ -127,6 +130,10 @@ export default function ExamEngine({
               average_score: percent,
 
               completed_tests: [testId],
+
+              streak: 1,
+
+              last_study_date: today,
             },
           ]);
 
@@ -155,6 +162,63 @@ export default function ExamEngine({
 
         const alreadyCompleted =
           completedTests.includes(testId);
+
+        // 🔥 STREAK SYSTEM
+        const today =
+          new Date().toISOString().split("T")[0];
+
+        const lastStudyDate =
+          profile.last_study_date;
+
+        let newStreak =
+          profile.streak || 0;
+
+        // FIRST TIME
+        if (!lastStudyDate) {
+
+          newStreak = 1;
+
+        } else {
+
+          const lastDate =
+            new Date(lastStudyDate);
+
+          const currentDate =
+            new Date(today);
+
+          const diffTime =
+            currentDate.getTime() -
+            lastDate.getTime();
+
+          const diffDays =
+            Math.floor(
+              diffTime /
+              (1000 * 60 * 60 * 24)
+            );
+
+          // NEXT DAY
+          if (diffDays === 1) {
+
+            newStreak += 1;
+
+          }
+
+          // SAME DAY
+          else if (diffDays === 0) {
+
+            newStreak =
+              profile.streak || 0;
+
+          }
+
+          // RESET
+          else {
+
+            newStreak = 1;
+
+          }
+
+        }
 
         // 🆕 TEST COUNT
         const newTests =
@@ -185,6 +249,12 @@ export default function ExamEngine({
             ? oldWeeklyXP
             : oldWeeklyXP + percent;
 
+        // 🆕 COMPLETED TESTS
+        const updatedCompletedTests =
+          alreadyCompleted
+            ? completedTests
+            : [...completedTests, testId];
+
         // 🚀 UPDATE
         const { error } = await supabase
           .from("profiles")
@@ -199,17 +269,25 @@ export default function ExamEngine({
             average_score: newAverage,
 
             completed_tests:
-              alreadyCompleted
-                ? completedTests
-                : [...completedTests, testId],
+              updatedCompletedTests,
+
+            streak: newStreak,
+
+            last_study_date: today,
 
           })
           .eq("id", user.id);
 
         if (error) {
+
           console.log(error);
+
         } else {
-          console.log("PROFILE UPDATED ✅");
+
+          console.log(
+            "PROFILE UPDATED ✅"
+          );
+
         }
 
       }
