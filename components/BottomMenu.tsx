@@ -128,7 +128,7 @@ export default function BottomMenu() {
       name:
         lang === "fr"
           ? "Accueil"
-          : "Asosiy sahifa",
+          : "Asosiy",
 
       icon: "/home.png",
 
@@ -187,20 +187,23 @@ export default function BottomMenu() {
     <div
       className="
         fixed
-        bottom-3
-        left-3
-        right-3
-        bg-white/80
+        bottom-4
+        left-1/2
+        -translate-x-1/2
+        w-[95%]
+        max-w-md
+        bg-white/10
         backdrop-blur-2xl
-        rounded-2xl
         border
-        border-white/40
-        shadow-[0_15px_50px_rgba(59,130,246,0.25)]
+        border-white/20
+        rounded-3xl
+        px-2
+        py-3
         flex
         justify-around
         items-center
-        py-3
         z-50
+        shadow-[0_10px_40px_rgba(0,0,0,0.35)]
       "
     >
 
@@ -211,8 +214,10 @@ export default function BottomMenu() {
 
         return (
 
-          <div
+          <motion.div
             key={i}
+
+            whileTap={{ scale: 0.9 }}
 
             onClick={() =>
               router.push(item.path)
@@ -224,39 +229,37 @@ export default function BottomMenu() {
               items-center
               justify-center
               cursor-pointer
-              w-[75px]
+              relative
+              w-[70px]
             "
           >
 
-            {/* 🔥 ICON */}
-            <motion.div
+            {/* ACTIVE BG */}
+            {active && (
 
-              whileTap={{ scale: 0.8 }}
+              <motion.div
 
-              animate={
-                active
-                  ? { y: [0, -4, 0] }
-                  : {}
-              }
+                layoutId="active-pill"
 
-              transition={{
-                duration: 0.4,
-              }}
+                className={`
+                  absolute
+                  inset-0
+                  rounded-2xl
+                  bg-gradient-to-r
+                  ${item.color}
+                  opacity-90
+                `}
+              />
 
-              className={`
+            )}
+
+            {/* ICON */}
+            <div
+              className="
+                relative
+                z-10
                 p-2
-                rounded-xl
-                transition-all
-                duration-300
-
-                ${
-                  active
-                    ? `bg-gradient-to-r ${item.color}
-                    shadow-[0_5px_20px_rgba(0,0,0,0.3)]
-                    text-white`
-                    : "bg-white/60 hover:bg-white/90"
-                }
-              `}
+              "
             >
 
               <Image
@@ -264,30 +267,29 @@ export default function BottomMenu() {
                 alt="menu-icon"
                 width={24}
                 height={24}
-                loading="eager"
                 className="
                   w-6
-                  h-auto
+                  h-6
                   object-contain
                 "
               />
 
-            </motion.div>
+            </div>
 
-            {/* 🔥 TEXT */}
+            {/* TEXT */}
             <span
               className={`
-                mt-1
+                relative
+                z-10
                 text-[11px]
-                text-center
-                leading-tight
                 font-semibold
-                transition
+                mt-1
+                transition-all
 
                 ${
                   active
-                    ? "text-blue-600"
-                    : "text-gray-700"
+                    ? "text-white"
+                    : "text-white/70"
                 }
               `}
             >
@@ -296,7 +298,7 @@ export default function BottomMenu() {
 
             </span>
 
-          </div>
+          </motion.div>
 
         );
 
