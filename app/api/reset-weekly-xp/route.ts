@@ -14,8 +14,7 @@ export async function GET() {
       .from("profiles")
       .update({
         weekly_xp: 0,
-      })
-      .neq("id", "0");
+      });
 
     if (error) {
 
@@ -28,14 +27,14 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      message:
-        "Weekly XP reset successful",
+      message: "Weekly XP reset successful",
     });
 
   } catch (err) {
 
     return NextResponse.json({
       success: false,
+      message: "Server error",
     });
 
   }
