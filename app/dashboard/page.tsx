@@ -75,7 +75,7 @@ export default function Dashboard() {
 
   }, [router]);
 
-  // 🏆 WINNER
+  // 🏆 WEEKLY WINNER
   useEffect(() => {
 
     const getWinner =
@@ -85,7 +85,7 @@ export default function Dashboard() {
           await supabase
             .from("profiles")
             .select("*")
-            .order("xp", {
+            .order("weekly_xp", {
               ascending: false,
             })
             .limit(1)
@@ -134,6 +134,7 @@ export default function Dashboard() {
 
     {
       word: "s’avérer",
+
       meaning:
         language === "fr"
           ? "se révéler"
@@ -318,7 +319,7 @@ export default function Dashboard() {
                   text-yellow-200
                   font-bold
                 ">
-                  ⭐ {winner.xp || 0} XP
+                  ⭐ {winner.weekly_xp || 0} XP
                 </p>
 
               </div>
