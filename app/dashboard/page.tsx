@@ -75,17 +75,17 @@ export default function Dashboard() {
 
   }, [router]);
 
-  // 🏆 WEEKLY WINNER
+  // 🏆 WEEKLY CHAMPION
   useEffect(() => {
 
-    const getWinner =
+    const getChampion =
       async () => {
 
         const { data, error } =
           await supabase
-            .from("profiles")
+            .from("weekly_champion")
             .select("*")
-            .order("weekly_xp", {
+            .order("created_at", {
               ascending: false,
             })
             .limit(1)
@@ -101,31 +101,7 @@ export default function Dashboard() {
 
       };
 
-    getWinner();
-
-    // ⚡ REALTIME
-    const channel = supabase
-      .channel("ranking-live")
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-        },
-
-        () => {
-          getWinner();
-        }
-
-      )
-
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    getChampion();
 
   }, []);
 
@@ -248,7 +224,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* 🏆 WINNER */}
+      {/* 🏆 CHAMPION */}
       {winner && (
 
         <div className="
@@ -297,7 +273,7 @@ export default function Dashboard() {
                   {
                     language === "fr"
                       ? "🏅 Champion de la semaine"
-                      : "🏅 Hafta g‘olibi"
+                      : "🏅 Hafta chempioni"
                   }
 
                 </p>

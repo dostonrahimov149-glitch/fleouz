@@ -10,10 +10,10 @@ export async function GET() {
 
   try {
 
-    // 🏆 ENG KUCHLI USERNI OLISH
+    // 🏆 TOP WEEKLY USER
     const {
-      data: champion,
-      error: championError,
+      data: topUser,
+      error: topError,
     } = await supabase
       .from("profiles")
       .select("*")
@@ -23,43 +23,36 @@ export async function GET() {
       .limit(1)
       .single();
 
-    if (championError) {
+    if (topError) {
 
       return NextResponse.json({
         success: false,
-        error: championError,
+        error: topError,
       });
 
     }
 
-    // 👑 CHAMPIONNI SAQLASH
-    const {
-      error: insertError,
-    } = await supabase
-      .from("weekly_champion")
-      .insert([
-        {
-          full_name:
-            champion.full_name ||
-            champion.email?.split("@")[0],
+    // 👑 SAVE CHAMPION
+    if (topUser) {
 
-          email: champion.email,
+      await supabase
+        .from("weekly_champion")
+        .insert({
+
+          full_name:
+            topUser.full_name,
+
+          email:
+            topUser.email,
 
           weekly_xp:
-            champion.weekly_xp || 0,
-        },
-      ]);
+            topUser.weekly_xp,
 
-    if (insertError) {
-
-      return NextResponse.json({
-        success: false,
-        error: insertError,
-      });
+        });
 
     }
 
-    // 👥 BARCHA USERLARNI OLISH
+    // 👥 GET ALL USERS
     const {
       data: profiles,
       error: fetchError,
@@ -76,7 +69,7 @@ export async function GET() {
 
     }
 
-    // 🔄 WEEKLY XP RESET
+    // 🔄 RESET WEEKLY XP
     for (const profile of profiles) {
 
       await supabase
@@ -89,16 +82,22 @@ export async function GET() {
     }
 
     return NextResponse.json({
+
       success: true,
+
       message:
         "Weekly champion saved and XP reset successful",
+
     });
 
   } catch (err) {
 
     return NextResponse.json({
+
       success: false,
+
       message: "Server error",
+
     });
 
   }
