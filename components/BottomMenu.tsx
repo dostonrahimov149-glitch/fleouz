@@ -59,11 +59,6 @@ export default function BottomMenu() {
 
   }, []);
 
-  const t =
-    translations[
-      lang as keyof typeof translations
-    ];
-
   // 🔐 AUTH
   useEffect(() => {
 
@@ -144,7 +139,7 @@ export default function BottomMenu() {
           ? "Tests"
           : "Testlar",
 
-      icon: "/result1.png",
+      icon: "/testmenu.png?v=2",
 
       path: "/attestation",
 
@@ -158,7 +153,7 @@ export default function BottomMenu() {
           ? "Classement"
           : "Reyting",
 
-      icon: "/target.png",
+      icon: "/target.png?v=2",
 
       path: "/ranking",
 
@@ -172,7 +167,7 @@ export default function BottomMenu() {
           ? "Profil"
           : "Profil",
 
-      icon: "/profil.png",
+      icon: "/profil.png?v=2",
 
       path: "/profile",
 
@@ -187,23 +182,20 @@ export default function BottomMenu() {
     <div
       className="
         fixed
-        bottom-4
-        left-1/2
-        -translate-x-1/2
-        w-[95%]
-        max-w-md
-        bg-white/10
+        bottom-3
+        left-3
+        right-3
+        bg-white/80
         backdrop-blur-2xl
+        rounded-2xl
         border
-        border-white/20
-        rounded-3xl
-        px-2
-        py-3
+        border-white/40
+        shadow-[0_15px_50px_rgba(59,130,246,0.25)]
         flex
         justify-around
         items-center
+        py-3
         z-50
-        shadow-[0_10px_40px_rgba(0,0,0,0.35)]
       "
     >
 
@@ -214,10 +206,8 @@ export default function BottomMenu() {
 
         return (
 
-          <motion.div
+          <div
             key={i}
-
-            whileTap={{ scale: 0.9 }}
 
             onClick={() =>
               router.push(item.path)
@@ -229,37 +219,39 @@ export default function BottomMenu() {
               items-center
               justify-center
               cursor-pointer
-              relative
-              w-[70px]
+              w-[75px]
             "
           >
 
-            {/* ACTIVE BG */}
-            {active && (
+            {/* 🔥 ICON */}
+            <motion.div
 
-              <motion.div
+              whileTap={{ scale: 0.8 }}
 
-                layoutId="active-pill"
+              animate={
+                active
+                  ? { y: [0, -4, 0] }
+                  : {}
+              }
 
-                className={`
-                  absolute
-                  inset-0
-                  rounded-2xl
-                  bg-gradient-to-r
-                  ${item.color}
-                  opacity-90
-                `}
-              />
+              transition={{
+                duration: 0.4,
+              }}
 
-            )}
-
-            {/* ICON */}
-            <div
-              className="
-                relative
-                z-10
+              className={`
                 p-2
-              "
+                rounded-xl
+                transition-all
+                duration-300
+
+                ${
+                  active
+                    ? `bg-gradient-to-r ${item.color}
+                    shadow-[0_5px_20px_rgba(0,0,0,0.3)]
+                    text-white`
+                    : "bg-white/60 hover:bg-white/90"
+                }
+              `}
             >
 
               <Image
@@ -267,29 +259,31 @@ export default function BottomMenu() {
                 alt="menu-icon"
                 width={24}
                 height={24}
+                loading="eager"
+                unoptimized
                 className="
                   w-6
-                  h-6
+                  h-auto
                   object-contain
                 "
               />
 
-            </div>
+            </motion.div>
 
-            {/* TEXT */}
+            {/* 🔥 TEXT */}
             <span
               className={`
-                relative
-                z-10
-                text-[11px]
-                font-semibold
                 mt-1
-                transition-all
+                text-[11px]
+                text-center
+                leading-tight
+                font-semibold
+                transition
 
                 ${
                   active
-                    ? "text-white"
-                    : "text-white/70"
+                    ? "text-blue-600"
+                    : "text-gray-700"
                 }
               `}
             >
@@ -298,7 +292,7 @@ export default function BottomMenu() {
 
             </span>
 
-          </motion.div>
+          </div>
 
         );
 
