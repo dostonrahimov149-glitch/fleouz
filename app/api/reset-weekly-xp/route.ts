@@ -10,25 +10,37 @@ export async function GET() {
 
   try {
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        weekly_xp: 0,
-      })
-      .not("id", "is", null);
+    // barcha userlarni olish
+    const { data: profiles, error: fetchError } =
+      await supabase
+        .from("profiles")
+        .select("id");
 
-    if (error) {
+    if (fetchError) {
 
       return NextResponse.json({
         success: false,
-        error,
+        error: fetchError,
       });
+
+    }
+
+    // har bir user weekly_xp reset
+    for (const profile of profiles) {
+
+      await supabase
+        .from("profiles")
+        .update({
+          weekly_xp: 0,
+        })
+        .eq("id", profile.id);
 
     }
 
     return NextResponse.json({
       success: true,
-      message: "Weekly XP reset successful",
+      message:
+        "Weekly XP reset successful",
     });
 
   } catch (err) {
