@@ -257,12 +257,12 @@ export default function BottomMenu() {
               <Image
                 src={item.icon}
                 alt="menu-icon"
-                width={24}
-                height={24}
+                width={32}
+                height={32}
                 loading="eager"
                 unoptimized
                 className="
-                  w-6
+                  w-8
                   h-auto
                   object-contain
                 "
