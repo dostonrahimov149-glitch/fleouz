@@ -3,6 +3,11 @@
     {
       "path": "/api/reset-weekly-xp",
       "schedule": "0 0 * * 1"
+    },
+
+    {
+      "path": "/api/generate-daily-duel",
+      "schedule": "0 5 * * *"
     }
   ]
 }
