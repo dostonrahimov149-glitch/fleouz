@@ -23,34 +23,36 @@ export async function GET() {
       .limit(1)
       .single();
 
-    if (topError) {
+    if (topError || !topUser) {
 
       return NextResponse.json({
         success: false,
-        error: topError,
+        error: "Champion topilmadi",
       });
 
     }
 
-    // 👑 SAVE CHAMPION
-    if (topUser) {
+    // 🗑 DELETE OLD CHAMPION
+    await supabase
+      .from("weekly_champion")
+      .delete()
+      .neq("id", 0);
 
-      await supabase
-        .from("weekly_champion")
-        .insert({
+    // 👑 SAVE NEW CHAMPION
+    await supabase
+      .from("weekly_champion")
+      .insert({
 
-          full_name:
-            topUser.full_name,
+        full_name:
+          topUser.full_name,
 
-          email:
-            topUser.email,
+        email:
+          topUser.email,
 
-          weekly_xp:
-            topUser.weekly_xp,
+        weekly_xp:
+          topUser.weekly_xp,
 
-        });
-
-    }
+      });
 
     // 👥 GET ALL USERS
     const {
@@ -85,8 +87,14 @@ export async function GET() {
 
       success: true,
 
+      champion:
+        topUser.full_name,
+
+      xp:
+        topUser.weekly_xp,
+
       message:
-        "Weekly champion saved and XP reset successful",
+        "Weekly champion updated successfully",
 
     });
 
@@ -96,7 +104,8 @@ export async function GET() {
 
       success: false,
 
-      message: "Server error",
+      message:
+        "Server error",
 
     });
 
