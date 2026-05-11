@@ -13,6 +13,9 @@ export default function Dashboard() {
   const [winner, setWinner] =
     useState<any>(null);
 
+  const [dailyDuel, setDailyDuel] =
+    useState<any>(null);
+
   const [language, setLanguage] =
     useState("uz");
 
@@ -81,7 +84,7 @@ export default function Dashboard() {
     const getChampion =
       async () => {
 
-        const { data, error } =
+        const { data } =
           await supabase
             .from("weekly_champion")
             .select("*")
@@ -91,68 +94,35 @@ export default function Dashboard() {
             .limit(1)
             .single();
 
-        if (error) {
-          console.log(error);
-        }
-
         if (data) {
           setWinner(data);
         }
 
       };
 
+    const fetchDailyDuel =
+      async () => {
+
+        const { data } =
+          await supabase
+            .from("daily_duel")
+            .select("*")
+            .order("created_at", {
+              ascending: false,
+            })
+            .limit(1)
+            .single();
+
+        if (data) {
+          setDailyDuel(data);
+        }
+
+      };
+
     getChampion();
+    fetchDailyDuel();
 
   }, []);
-
-  // 🇫🇷 DAILY WORDS
-  const c1Words = [
-
-    {
-      word: "s’avérer",
-
-      meaning:
-        language === "fr"
-          ? "se révéler"
-          : "ma’lum bo‘lmoq",
-
-      example:
-        "Cette solution s’avère efficace.",
-    },
-
-    {
-      word: "mettre en œuvre",
-
-      meaning:
-        language === "fr"
-          ? "appliquer"
-          : "amalga oshirmoq",
-
-      example:
-        "Le gouvernement met en œuvre une réforme.",
-    },
-
-    {
-      word: "une démarche",
-
-      meaning:
-        language === "fr"
-          ? "approche"
-          : "yondashuv",
-
-      example:
-        "Sa démarche est très structurée.",
-    },
-
-  ];
-
-  const today = Math.floor(
-    Date.now() /
-      (1000 * 60 * 60 * 24)
-  );
-
-  const currentWord =
-    today % c1Words.length;
 
   // 🚪 LOGOUT
   const logout = async () => {
@@ -224,7 +194,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* 🏆 CHAMPION */}
+      {/* 🏆 WEEKLY CHAMPION */}
       {winner && (
 
         <div className="
@@ -243,12 +213,10 @@ export default function Dashboard() {
             items-center
           ">
 
-            {/* LEFT */}
             <div className="
               flex items-center gap-4
             ">
 
-              {/* 👑 */}
               <div className="
                 w-24 h-24 rounded-full
                 bg-gradient-to-r
@@ -263,7 +231,6 @@ export default function Dashboard() {
                 👑
               </div>
 
-              {/* INFO */}
               <div>
 
                 <p className="
@@ -302,7 +269,6 @@ export default function Dashboard() {
 
             </div>
 
-            {/* 🏆 */}
             <motion.img
               src="/trophy.png"
               className="w-20"
@@ -322,6 +288,103 @@ export default function Dashboard() {
         </div>
 
       )}
+
+      {/* ⚔️ DAILY DUEL */}
+      {
+        dailyDuel && (
+
+          <div className="
+            mx-4 mb-6
+            rounded-[35px]
+            p-8
+            bg-gradient-to-r
+            from-orange-500
+            via-pink-500
+            to-red-500
+            shadow-[0_20px_60px_rgba(255,80,120,0.5)]
+          ">
+
+            <div className="
+              flex items-center
+              justify-between
+            ">
+
+              <div>
+
+                <p className="
+                  text-white/90
+                  text-xl
+                  font-bold
+                ">
+                  ⚔️ Duel du jour
+                </p>
+
+                <h1 className="
+                  text-white
+                  text-4xl
+                  font-extrabold
+                  mt-3
+                ">
+
+                  {dailyDuel.player1_name}
+
+                  <span className="mx-3">
+                    🆚
+                  </span>
+
+                  {dailyDuel.player2_name}
+
+                </h1>
+
+                <p className="
+                  text-white/90
+                  text-xl
+                  mt-4
+                ">
+
+                  {dailyDuel.section}
+
+                  <span className="mx-2">
+                    •
+                  </span>
+
+                  10 Questions
+
+                </p>
+
+                <p className="
+                  text-yellow-300
+                  text-lg
+                  font-bold
+                  mt-3
+                ">
+                  ⚡ +50 XP BONUS
+                </p>
+
+              </div>
+
+              <motion.div
+
+                animate={{
+                  scale: [1, 1.15, 1]
+                }}
+
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+
+                className="text-8xl"
+              >
+                🔥
+              </motion.div>
+
+            </div>
+
+          </div>
+
+        )
+      }
 
       {/* 📘 ATTESTATION */}
       <div className="mx-4">
@@ -349,7 +412,6 @@ export default function Dashboard() {
               justify-between
             ">
 
-              {/* LEFT */}
               <div className="
                 flex items-center gap-4
               ">
@@ -393,7 +455,6 @@ export default function Dashboard() {
 
               </div>
 
-              {/* 👉 */}
               <motion.div
                 animate={{
                   x: [0, 6, 0]
@@ -416,64 +477,6 @@ export default function Dashboard() {
           </motion.div>
 
         </Link>
-
-      </div>
-
-      {/* 🇫🇷 WORD */}
-      <div className="
-        mx-4 mt-6
-        p-[20px]
-        rounded-3xl
-        bg-gradient-to-r
-        from-indigo-500
-        via-purple-500
-        to-pink-500
-      ">
-
-        <p className="
-          text-xs text-white
-        ">
-
-          {
-            language === "fr"
-              ? "🇫🇷 Mot du jour"
-              : "🇫🇷 Kun so‘zi"
-          }
-
-        </p>
-
-        <h2 className="
-          text-3xl
-          font-bold
-          text-black
-          mt-1
-        ">
-
-          {
-            c1Words[currentWord].word
-          }
-
-        </h2>
-
-        <p className="
-          text-lg text-white mt-1
-        ">
-
-          {
-            c1Words[currentWord].meaning
-          }
-
-        </p>
-
-        <p className="
-          italic text-white/80 mt-2
-        ">
-
-          {
-            c1Words[currentWord].example
-          }
-
-        </p>
 
       </div>
 
